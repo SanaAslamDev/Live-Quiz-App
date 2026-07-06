@@ -126,6 +126,34 @@ app.post('/api/quizzes/:id/questions', async (req, res) => {
   }
 });
 
+
+function generateRoomCode() {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+app.post('/api/sessions', async (req, res) => {
+  try {
+    const { quiz_id } = req.body;
+
+    if (!quiz_id) {
+      return res.status(400).json({ success: false, error: 'quiz_id is required' });
+    }
+
+    const roomCode = generateRoomCode();
+
+    const result = await pool.query(
+      `INSERT INTO sessions (quiz_id, room_code, status)
+       VALUES ($1, $2, 'waiting') RETURNING *`,
+      [quiz_id, roomCode]
+    );
+
+    res.status(201).json({ success: true, session: result.rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 httpServer.listen(PORT, () => {
   console.log(`Server listening on http://localhost:${PORT}`);
 });
