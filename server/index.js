@@ -23,6 +23,41 @@ app.use(express.json());
 io.on('connection', (socket) => {
   console.log('A user connected:', socket.id);
 
+  socket.on('join_room', async ({ roomCode, displayName }) => {
+    try {
+      const sessionResult = await pool.query(
+        'SELECT * FROM sessions WHERE room_code = $1',
+        [roomCode]
+      );
+
+      if (sessionResult.rows.length === 0) {
+        socket.emit('join_error', { error: 'Room not found' });
+        return;
+      }
+
+      const session = sessionResult.rows[0];
+
+      const participantResult = await pool.query(
+        `INSERT INTO participants (session_id, display_name)
+         VALUES ($1, $2) RETURNING *`,
+        [session.id, displayName]
+      );
+
+      socket.join(roomCode);
+
+      const allParticipants = await pool.query(
+        'SELECT * FROM participants WHERE session_id = $1',
+        [session.id]
+      );
+
+      io.to(roomCode).emit('participant_update', allParticipants.rows);
+
+    } catch (err) {
+      console.error(err);
+      socket.emit('join_error', { error: 'Something went wrong' });
+    }
+  });
+
   socket.on('disconnect', () => {
     console.log('A user disconnected:', socket.id);
   });
