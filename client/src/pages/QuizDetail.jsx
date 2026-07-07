@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 
 function QuizDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [quiz, setQuiz] = useState(null);
   const [questions, setQuestions] = useState([]);
   const [questionText, setQuestionText] = useState('');
@@ -21,6 +22,28 @@ function QuizDetail() {
       console.error('Error fetching quiz detail:', err);
     }
   };
+
+
+
+const handleStartSession = async () => {
+  try {
+    const response = await fetch('http://localhost:3001/api/sessions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ quiz_id: id }),
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      navigate(`/host/${data.session.room_code}`);
+    } else {
+      console.error('Error starting session:', data.error);
+    }
+  } catch (err) {
+    console.error('Network error:', err);
+  }
+};
 
   const handleAddQuestion = async (e) => {
   e.preventDefault();
@@ -62,6 +85,7 @@ function QuizDetail() {
     <div>
       <Link to="/">← Back to all quizzes</Link>
       <h1>{quiz.title}</h1>
+      <button onClick={handleStartSession}>Start Session</button>
 
       <h2>Questions</h2>
       {questions.length === 0 ? (
