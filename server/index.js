@@ -62,6 +62,8 @@ io.on('connection', (socket) => {
         [session.id, displayName]
       );
 
+      socket.data.participantId = participantResult.rows[0].id;
+
       socket.join(roomCode);
 
       const allParticipants = await pool.query(
@@ -78,37 +80,72 @@ io.on('connection', (socket) => {
   });
 
   socket.on('start_quiz', async ({ roomCode }) => {
-  try {
-    const session = await getSessionByRoomCode(roomCode);
-    if (!session) return;
+    try {
+      const session = await getSessionByRoomCode(roomCode);
+      if (!session) return;
 
-    await pool.query(
-      `UPDATE sessions SET status = 'live', current_question_index = 0 WHERE id = $1`,
-      [session.id]
-    );
+      await pool.query(
+        `UPDATE sessions SET status = 'live', current_question_index = 0 WHERE id = $1`,
+        [session.id]
+      );
 
-    const questionsResult = await pool.query(
-      'SELECT * FROM questions WHERE quiz_id = $1 ORDER BY order_index ASC',
-      [session.quiz_id]
-    );
+      const questionsResult = await pool.query(
+        'SELECT * FROM questions WHERE quiz_id = $1 ORDER BY order_index ASC',
+        [session.quiz_id]
+      );
 
-    const firstQuestion = questionsResult.rows[0];
+      const firstQuestion = questionsResult.rows[0];
 
-    if (!firstQuestion) {
-      io.to(roomCode).emit('quiz_error', { error: 'This quiz has no questions' });
-      return;
+      if (!firstQuestion) {
+        io.to(roomCode).emit('quiz_error', { error: 'This quiz has no questions' });
+        return;
+      }
+
+      io.to(roomCode).emit('question_started', {
+        questionIndex: 0,
+        totalQuestions: questionsResult.rows.length,
+        questionText: firstQuestion.question_text,
+        options: firstQuestion.options,
+      });
+    } catch (err) {
+      console.error(err);
     }
+  });
 
-    io.to(roomCode).emit('question_started', {
-      questionIndex: 0,
-      totalQuestions: questionsResult.rows.length,
-      questionText: firstQuestion.question_text,
-      options: firstQuestion.options,
-    });
-  } catch (err) {
-    console.error(err);
-  }
-});
+  socket.on('submit_answer', async ({ roomCode, questionIndex, selectedOption }) => {
+    try {
+      const participantId = socket.data.participantId;
+      if (!participantId) return;
+
+      const session = await getSessionByRoomCode(roomCode);
+      if (!session) return;
+
+      const questionsResult = await pool.query(
+        'SELECT * FROM questions WHERE quiz_id = $1 ORDER BY order_index ASC',
+        [session.quiz_id]
+      );
+      const question = questionsResult.rows[questionIndex];
+      if (!question) return;
+
+      const isCorrect = selectedOption === question.correct_option_index;
+
+      await pool.query(
+        `INSERT INTO answers (session_id, participant_id, question_id, selected_option, is_correct)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [session.id, participantId, question.id, selectedOption, isCorrect]
+      );
+
+      if (isCorrect) {
+        await pool.query(
+          'UPDATE participants SET score = score + 100 WHERE id = $1',
+          [participantId]
+        );
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  });
+
   socket.on('disconnect', () => {
     console.log('A user disconnected:', socket.id);
   });
