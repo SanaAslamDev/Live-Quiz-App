@@ -7,6 +7,9 @@ function JoinSession() {
   const [joined, setJoined] = useState(false);
   const [participants, setParticipants] = useState([]);
   const [error, setError] = useState('');
+  const [currentQuestion, setCurrentQuestion] = useState(null);
+  const [selectedOption, setSelectedOption] = useState(null);
+  const [hasAnswered, setHasAnswered] = useState(false);
 
   useEffect(() => {
     const handleParticipantUpdate = (updatedParticipants) => {
@@ -18,12 +21,20 @@ function JoinSession() {
       setError(error);
     };
 
+    const handleQuestionStarted = (questionData) => {
+      setCurrentQuestion(questionData);
+      setSelectedOption(null);
+      setHasAnswered(false);
+    };
+
     socket.on('participant_update', handleParticipantUpdate);
     socket.on('join_error', handleJoinError);
+    socket.on('question_started', handleQuestionStarted);
 
     return () => {
       socket.off('participant_update', handleParticipantUpdate);
       socket.off('join_error', handleJoinError);
+      socket.off('question_started', handleQuestionStarted);
     };
   }, []);
 
@@ -33,7 +44,41 @@ function JoinSession() {
     socket.emit('join_room', { roomCode, displayName });
   };
 
+  const handleSelectOption = (index) => {
+    if (hasAnswered) return;
+    setSelectedOption(index);
+    setHasAnswered(true);
+    socket.emit('submit_answer', {
+      roomCode,
+      questionIndex: currentQuestion.questionIndex,
+      selectedOption: index,
+    });
+  };
 
+  if (joined && currentQuestion) {
+    return (
+      <div>
+        <p>Question {currentQuestion.questionIndex + 1} of {currentQuestion.totalQuestions}</p>
+        <h2>{currentQuestion.questionText}</h2>
+        <ul>
+          {currentQuestion.options.map((option, index) => (
+            <li key={index}>
+              <button
+                onClick={() => handleSelectOption(index)}
+                disabled={hasAnswered}
+                style={{
+                  backgroundColor: selectedOption === index ? '#cce5ff' : 'white',
+                }}
+              >
+                {option}
+              </button>
+            </li>
+          ))}
+        </ul>
+        {hasAnswered && <p>Answer submitted! Waiting for others...</p>}
+      </div>
+    );
+  }
 
   if (joined) {
     return (

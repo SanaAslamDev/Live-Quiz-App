@@ -77,6 +77,38 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on('start_quiz', async ({ roomCode }) => {
+  try {
+    const session = await getSessionByRoomCode(roomCode);
+    if (!session) return;
+
+    await pool.query(
+      `UPDATE sessions SET status = 'live', current_question_index = 0 WHERE id = $1`,
+      [session.id]
+    );
+
+    const questionsResult = await pool.query(
+      'SELECT * FROM questions WHERE quiz_id = $1 ORDER BY order_index ASC',
+      [session.quiz_id]
+    );
+
+    const firstQuestion = questionsResult.rows[0];
+
+    if (!firstQuestion) {
+      io.to(roomCode).emit('quiz_error', { error: 'This quiz has no questions' });
+      return;
+    }
+
+    io.to(roomCode).emit('question_started', {
+      questionIndex: 0,
+      totalQuestions: questionsResult.rows.length,
+      questionText: firstQuestion.question_text,
+      options: firstQuestion.options,
+    });
+  } catch (err) {
+    console.error(err);
+  }
+});
   socket.on('disconnect', () => {
     console.log('A user disconnected:', socket.id);
   });
