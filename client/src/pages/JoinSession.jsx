@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import socket from '../socket';
 
 function JoinSession() {
@@ -8,20 +8,32 @@ function JoinSession() {
   const [participants, setParticipants] = useState([]);
   const [error, setError] = useState('');
 
+  useEffect(() => {
+    const handleParticipantUpdate = (updatedParticipants) => {
+      setParticipants(updatedParticipants);
+      setJoined(true);
+    };
+
+    const handleJoinError = ({ error }) => {
+      setError(error);
+    };
+
+    socket.on('participant_update', handleParticipantUpdate);
+    socket.on('join_error', handleJoinError);
+
+    return () => {
+      socket.off('participant_update', handleParticipantUpdate);
+      socket.off('join_error', handleJoinError);
+    };
+  }, []);
+
   const handleJoin = (e) => {
     e.preventDefault();
     setError('');
     socket.emit('join_room', { roomCode, displayName });
   };
 
-  socket.on('participant_update', (updatedParticipants) => {
-    setParticipants(updatedParticipants);
-    setJoined(true);
-  });
 
-  socket.on('join_error', ({ error }) => {
-    setError(error);
-  });
 
   if (joined) {
     return (

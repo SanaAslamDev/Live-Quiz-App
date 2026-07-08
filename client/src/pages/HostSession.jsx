@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import socket from '../socket';
 
@@ -6,11 +6,19 @@ function HostSession() {
   const { roomCode } = useParams();
   const [participants, setParticipants] = useState([]);
 
-  socket.emit('join_room', { roomCode, displayName: 'HOST' });
+  useEffect(() => {
+    socket.emit('join_room', { roomCode, displayName: 'HOST' });
 
-  socket.on('participant_update', (updatedParticipants) => {
-    setParticipants(updatedParticipants.filter((p) => p.display_name !== 'HOST'));
-  });
+    const handleParticipantUpdate = (updatedParticipants) => {
+      setParticipants(updatedParticipants.filter((p) => p.display_name !== 'HOST'));
+    };
+
+    socket.on('participant_update', handleParticipantUpdate);
+
+    return () => {
+      socket.off('participant_update', handleParticipantUpdate);
+    };
+  }, [roomCode]);
 
   return (
     <div>
