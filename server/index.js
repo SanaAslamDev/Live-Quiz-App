@@ -3,7 +3,6 @@ const { createServer } = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
 
-
 const pool = require('./db');
 
 const app = express();
@@ -18,24 +17,44 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
-
+// Shared helper — looks up a session by its room code
+async function getSessionByRoomCode(roomCode) {
+  const result = await pool.query(
+    'SELECT * FROM sessions WHERE room_code = $1',
+    [roomCode]
+  );
+  return result.rows[0] || null;
+}
 
 io.on('connection', (socket) => {
   console.log('A user connected:', socket.id);
 
-  socket.on('join_room', async ({ roomCode, displayName }) => {
+  socket.on('host_join_room', async ({ roomCode }) => {
+    socket.join(roomCode);
+
     try {
-      const sessionResult = await pool.query(
-        'SELECT * FROM sessions WHERE room_code = $1',
-        [roomCode]
+      const session = await getSessionByRoomCode(roomCode);
+      if (!session) return;
+
+      const participantsResult = await pool.query(
+        'SELECT * FROM participants WHERE session_id = $1',
+        [session.id]
       );
 
-      if (sessionResult.rows.length === 0) {
+      socket.emit('participant_update', participantsResult.rows);
+    } catch (err) {
+      console.error(err);
+    }
+  });
+
+  socket.on('join_room', async ({ roomCode, displayName }) => {
+    try {
+      const session = await getSessionByRoomCode(roomCode);
+
+      if (!session) {
         socket.emit('join_error', { error: 'Room not found' });
         return;
       }
-
-      const session = sessionResult.rows[0];
 
       const participantResult = await pool.query(
         `INSERT INTO participants (session_id, display_name)
@@ -160,7 +179,6 @@ app.post('/api/quizzes/:id/questions', async (req, res) => {
     res.status(500).json({ success: false, error: err.message });
   }
 });
-
 
 function generateRoomCode() {
   return Math.floor(100000 + Math.random() * 900000).toString();

@@ -7,18 +7,18 @@ function HostSession() {
   const [participants, setParticipants] = useState([]);
 
   useEffect(() => {
-    socket.emit('join_room', { roomCode, displayName: 'HOST' });
+  socket.emit('host_join_room', { roomCode });
 
-    const handleParticipantUpdate = (updatedParticipants) => {
-      setParticipants(updatedParticipants.filter((p) => p.display_name !== 'HOST'));
-    };
+  const handleParticipantUpdate = (updatedParticipants) => {
+    setParticipants(updatedParticipants);
+  };
 
-    socket.on('participant_update', handleParticipantUpdate);
+  socket.on('participant_update', handleParticipantUpdate);
 
-    return () => {
-      socket.off('participant_update', handleParticipantUpdate);
-    };
-  }, [roomCode]);
+  return () => {
+    socket.off('participant_update', handleParticipantUpdate);
+  };
+}, [roomCode]);
 
   return (
     <div>
