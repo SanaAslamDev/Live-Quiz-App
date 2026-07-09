@@ -173,6 +173,52 @@ io.on('connection', (socket) => {
   }
 });
 
+socket.on('next_question', async ({ roomCode }) => {
+  try {
+    const session = await getSessionByRoomCode(roomCode);
+    if (!session) return;
+
+    const nextIndex = session.current_question_index + 1;
+
+    const questionsResult = await pool.query(
+      'SELECT * FROM questions WHERE quiz_id = $1 ORDER BY order_index ASC',
+      [session.quiz_id]
+    );
+
+    const nextQuestion = questionsResult.rows[nextIndex];
+
+    if (!nextQuestion) {
+      const participantsResult = await pool.query(
+        'SELECT * FROM participants WHERE session_id = $1 ORDER BY score DESC',
+        [session.id]
+      );
+
+      await pool.query(
+        `UPDATE sessions SET status = 'ended' WHERE id = $1`,
+        [session.id]
+      );
+
+      io.to(roomCode).emit('quiz_ended', {
+        finalLeaderboard: participantsResult.rows,
+      });
+      return;
+    }
+
+    await pool.query(
+      `UPDATE sessions SET current_question_index = $1 WHERE id = $2`,
+      [nextIndex, session.id]
+    );
+
+    io.to(roomCode).emit('question_started', {
+      questionIndex: nextIndex,
+      totalQuestions: questionsResult.rows.length,
+      questionText: nextQuestion.question_text,
+      options: nextQuestion.options,
+    });
+  } catch (err) {
+    console.error(err);
+  }
+});
   
   socket.on('disconnect', () => {
     console.log('A user disconnected:', socket.id);

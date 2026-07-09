@@ -13,6 +13,8 @@ function JoinSession() {
   const [revealed, setRevealed] = useState(false);
   const [leaderboard, setLeaderboard] = useState([]);
   const [correctOptionIndex, setCorrectOptionIndex] = useState(null);
+  const [quizEnded, setQuizEnded] = useState(false);
+  const [finalLeaderboard, setFinalLeaderboard] = useState([]);
 
   useEffect(() => {
     const handleParticipantUpdate = (updatedParticipants) => {
@@ -37,16 +39,23 @@ function JoinSession() {
       setLeaderboard(leaderboard);
     };
 
+    const handleQuizEnded = ({ finalLeaderboard }) => {
+      setQuizEnded(true);
+      setFinalLeaderboard(finalLeaderboard);
+    };
+
     socket.on('participant_update', handleParticipantUpdate);
     socket.on('join_error', handleJoinError);
     socket.on('question_started', handleQuestionStarted);
     socket.on('answer_revealed', handleAnswerRevealed);
+    socket.on('quiz_ended', handleQuizEnded);
 
     return () => {
       socket.off('participant_update', handleParticipantUpdate);
       socket.off('join_error', handleJoinError);
       socket.off('question_started', handleQuestionStarted);
       socket.off('answer_revealed', handleAnswerRevealed);
+      socket.off('quiz_ended', handleQuizEnded);
     };
   }, []);
 
@@ -67,6 +76,22 @@ function JoinSession() {
     });
   };
 
+  if (quizEnded) {
+    return (
+      <div>
+        <h1>Quiz Over!</h1>
+        <h3>Final Leaderboard</h3>
+        <ul>
+          {finalLeaderboard.map((p, index) => (
+            <li key={p.id}>
+              #{index + 1} — {p.display_name} — {p.score} pts
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
+
   if (revealed && currentQuestion) {
     const wasCorrect = selectedOption === correctOptionIndex;
     return (
@@ -79,6 +104,7 @@ function JoinSession() {
             <li key={p.id}>{p.display_name} — {p.score} pts</li>
           ))}
         </ul>
+        <p>Waiting for the host to continue...</p>
       </div>
     );
   }

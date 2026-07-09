@@ -10,6 +10,8 @@ function HostSession() {
   const [revealed, setRevealed] = useState(false);
   const [leaderboard, setLeaderboard] = useState([]);
   const [correctOptionIndex, setCorrectOptionIndex] = useState(null);
+  const [quizEnded, setQuizEnded] = useState(false);
+  const [finalLeaderboard, setFinalLeaderboard] = useState([]);
 
   useEffect(() => {
     socket.emit('host_join_room', { roomCode });
@@ -30,14 +32,21 @@ function HostSession() {
       setLeaderboard(leaderboard);
     };
 
+    const handleQuizEnded = ({ finalLeaderboard }) => {
+      setQuizEnded(true);
+      setFinalLeaderboard(finalLeaderboard);
+    };
+
     socket.on('participant_update', handleParticipantUpdate);
     socket.on('question_started', handleQuestionStarted);
     socket.on('answer_revealed', handleAnswerRevealed);
+    socket.on('quiz_ended', handleQuizEnded);
 
     return () => {
       socket.off('participant_update', handleParticipantUpdate);
       socket.off('question_started', handleQuestionStarted);
       socket.off('answer_revealed', handleAnswerRevealed);
+      socket.off('quiz_ended', handleQuizEnded);
     };
   }, [roomCode]);
 
@@ -51,6 +60,26 @@ function HostSession() {
       questionIndex: currentQuestion.questionIndex,
     });
   };
+
+  const handleNextQuestion = () => {
+    socket.emit('next_question', { roomCode });
+  };
+
+  if (quizEnded) {
+    return (
+      <div>
+        <h1>Quiz Over!</h1>
+        <h3>Final Leaderboard</h3>
+        <ul>
+          {finalLeaderboard.map((p, index) => (
+            <li key={p.id}>
+              #{index + 1} — {p.display_name} — {p.score} pts
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -98,6 +127,7 @@ function HostSession() {
               <li key={p.id}>{p.display_name} — {p.score} pts</li>
             ))}
           </ul>
+          <button onClick={handleNextQuestion}>Next Question</button>
         </div>
       )}
     </div>
