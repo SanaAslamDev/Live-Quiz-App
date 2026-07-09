@@ -10,6 +10,9 @@ function JoinSession() {
   const [currentQuestion, setCurrentQuestion] = useState(null);
   const [selectedOption, setSelectedOption] = useState(null);
   const [hasAnswered, setHasAnswered] = useState(false);
+  const [revealed, setRevealed] = useState(false);
+  const [leaderboard, setLeaderboard] = useState([]);
+  const [correctOptionIndex, setCorrectOptionIndex] = useState(null);
 
   useEffect(() => {
     const handleParticipantUpdate = (updatedParticipants) => {
@@ -25,16 +28,25 @@ function JoinSession() {
       setCurrentQuestion(questionData);
       setSelectedOption(null);
       setHasAnswered(false);
+      setRevealed(false);
+    };
+
+    const handleAnswerRevealed = ({ correctOptionIndex, leaderboard }) => {
+      setRevealed(true);
+      setCorrectOptionIndex(correctOptionIndex);
+      setLeaderboard(leaderboard);
     };
 
     socket.on('participant_update', handleParticipantUpdate);
     socket.on('join_error', handleJoinError);
     socket.on('question_started', handleQuestionStarted);
+    socket.on('answer_revealed', handleAnswerRevealed);
 
     return () => {
       socket.off('participant_update', handleParticipantUpdate);
       socket.off('join_error', handleJoinError);
       socket.off('question_started', handleQuestionStarted);
+      socket.off('answer_revealed', handleAnswerRevealed);
     };
   }, []);
 
@@ -54,6 +66,22 @@ function JoinSession() {
       selectedOption: index,
     });
   };
+
+  if (revealed && currentQuestion) {
+    const wasCorrect = selectedOption === correctOptionIndex;
+    return (
+      <div>
+        <h2>{wasCorrect ? 'Correct! 🎉' : 'Not quite!'}</h2>
+        <p>The correct answer was: {currentQuestion.options[correctOptionIndex]}</p>
+        <h3>Leaderboard</h3>
+        <ul>
+          {leaderboard.map((p) => (
+            <li key={p.id}>{p.display_name} — {p.score} pts</li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
 
   if (joined && currentQuestion) {
     return (
