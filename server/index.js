@@ -135,6 +135,8 @@ io.on('connection', (socket) => {
         [session.id, participantId, question.id, selectedOption, isCorrect]
       );
 
+
+
       if (isCorrect) {
         await pool.query(
           'UPDATE participants SET score = score + 100 WHERE id = $1',
@@ -145,7 +147,33 @@ io.on('connection', (socket) => {
       console.error(err);
     }
   });
+  socket.on('reveal_answer', async ({ roomCode, questionIndex }) => {
+  try {
+    const session = await getSessionByRoomCode(roomCode);
+    if (!session) return;
 
+    const questionsResult = await pool.query(
+      'SELECT * FROM questions WHERE quiz_id = $1 ORDER BY order_index ASC',
+      [session.quiz_id]
+    );
+    const question = questionsResult.rows[questionIndex];
+    if (!question) return;
+
+    const participantsResult = await pool.query(
+      'SELECT * FROM participants WHERE session_id = $1 ORDER BY score DESC',
+      [session.id]
+    );
+
+    io.to(roomCode).emit('answer_revealed', {
+      correctOptionIndex: question.correct_option_index,
+      leaderboard: participantsResult.rows,
+    });
+  } catch (err) {
+    console.error(err);
+  }
+});
+
+  
   socket.on('disconnect', () => {
     console.log('A user disconnected:', socket.id);
   });
