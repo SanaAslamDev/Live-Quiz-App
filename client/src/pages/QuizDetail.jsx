@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import './QuizDetail.css';
+const API_URL = import.meta.env.VITE_API_URL;
 
 function QuizDetail() {
   const { id } = useParams();
@@ -13,7 +14,7 @@ function QuizDetail() {
 
   const fetchQuizDetail = async () => {
     try {
-      const response = await fetch(`http://localhost:3001/api/quizzes/${id}`);
+      const response = await fetch(`${API_URL}/api/quizzes/${id}`);
       const data = await response.json();
       if (data.success) {
         setQuiz(data.quiz);
@@ -28,7 +29,7 @@ function QuizDetail() {
 
 const handleStartSession = async () => {
   try {
-    const response = await fetch('http://localhost:3001/api/sessions', {
+   const response = await fetch(`${API_URL}/api/sessions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ quiz_id: id }),
@@ -50,7 +51,7 @@ const handleStartSession = async () => {
   e.preventDefault();
 
   try {
-    const response = await fetch(`http://localhost:3001/api/quizzes/${id}/questions`, {
+    const response = await fetch(`${API_URL}/api/quizzes/${id}/questions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

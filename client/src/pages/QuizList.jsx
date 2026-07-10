@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import './QuizList.css';
+const API_URL = import.meta.env.VITE_API_URL;
 
 function QuizList() {
   const [title, setTitle] = useState('');
@@ -8,7 +9,8 @@ function QuizList() {
 
   const fetchQuizzes = async () => {
     try {
-      const response = await fetch('http://localhost:3001/api/quizzes');
+    const response = await fetch(`${API_URL}/api/quizzes`);
+
       const data = await response.json();
       if (data.success) {
         setQuizzes(data.quizzes);
@@ -25,7 +27,7 @@ function QuizList() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:3001/api/quizzes', {
+     const response = await fetch(`${API_URL}/api/quizzes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title }),
@@ -49,9 +51,9 @@ function QuizList() {
   if (!window.confirm('Delete this quiz? This cannot be undone.')) return;
 
   try {
-    const response = await fetch(`http://localhost:3001/api/quizzes/${quizId}`, {
-      method: 'DELETE',
-    });
+   const response = await fetch(`${API_URL}/api/quizzes/${quizId}`, {
+  method: 'DELETE',
+});
     const data = await response.json();
     if (data.success) {
       fetchQuizzes();
