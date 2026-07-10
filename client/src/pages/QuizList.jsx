@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import './QuizList.css';
 
 function QuizList() {
   const [title, setTitle] = useState('');
@@ -23,16 +24,13 @@ function QuizList() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
       const response = await fetch('http://localhost:3001/api/quizzes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title }),
       });
-
       const data = await response.json();
-
       if (data.success) {
         setTitle('');
         fetchQuizzes();
@@ -44,27 +42,60 @@ function QuizList() {
     }
   };
 
+  const handleDelete = async (e, quizId) => {
+  e.preventDefault();
+  e.stopPropagation();
+
+  if (!window.confirm('Delete this quiz? This cannot be undone.')) return;
+
+  try {
+    const response = await fetch(`http://localhost:3001/api/quizzes/${quizId}`, {
+      method: 'DELETE',
+    });
+    const data = await response.json();
+    if (data.success) {
+      fetchQuizzes();
+    }
+  } catch (err) {
+    console.error('Error deleting quiz:', err);
+  }
+};
+
   return (
-    <div>
-      <h1>Create a Quiz</h1>
-      <form onSubmit={handleSubmit}>
+    <div className="page">
+      <div className="eyebrow">Quiz Builder</div>
+   <h1 className="page-title neon-cyan glitch-in">Create a Quiz</h1>
+
+      <form className="create-form" onSubmit={handleSubmit}>
         <input
           type="text"
           placeholder="Quiz title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
         />
-        <button type="submit">Create Quiz</button>
+        <button type="submit" className="btn-primary">Create</button>
       </form>
 
-      <h2>Your Quizzes</h2>
-      <ul>
-        {quizzes.map((quiz) => (
-          <li key={quiz.id}>
-            <Link to={`/quiz/${quiz.id}`}>{quiz.title}</Link>
-          </li>
-        ))}
-      </ul>
+      <div className="quiz-section-label">Your Quizzes</div>
+      <div className="quiz-list">
+        {quizzes.length === 0 ? (
+          <p className="empty-state">No quizzes yet — create your first one above.</p>
+        ) : (
+      quizzes.map((quiz, index) => (
+  <Link
+    key={quiz.id}
+    to={`/quiz/${quiz.id}`}
+    className="quiz-card"
+    style={{ animationDelay: `${0.5 + index * 0.08}s` }}
+  >
+    <span className="quiz-card-title">{quiz.title}</span>
+    <button className="btn-delete" onClick={(e) => handleDelete(e, quiz.id)}>
+      ✕
+    </button>
+  </Link>
+))
+        )}
+      </div>
     </div>
   );
 }

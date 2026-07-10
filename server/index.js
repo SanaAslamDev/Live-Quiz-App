@@ -323,6 +323,27 @@ app.post('/api/quizzes/:id/questions', async (req, res) => {
   }
 });
 
+
+app.delete('/api/quizzes/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await pool.query(
+      'DELETE FROM quizzes WHERE id = $1 RETURNING *',
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Quiz not found' });
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 function generateRoomCode() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import socket from '../socket';
+import './JoinSession.css';
 
 function JoinSession() {
   const [roomCode, setRoomCode] = useState('');
@@ -78,16 +79,16 @@ function JoinSession() {
 
   if (quizEnded) {
     return (
-      <div>
-        <h1>Quiz Over!</h1>
-        <h3>Final Leaderboard</h3>
-        <ul>
+      <div className="page">
+        <div className="section-label">Final Results</div>
+        <h1 className="result-heading neon-magenta glitch-in">Quiz Over!</h1>
+        <div className="player-list" style={{ marginTop: '1.5rem' }}>
           {finalLeaderboard.map((p, index) => (
-            <li key={p.id}>
+            <div key={p.id} className="player-chip" style={{ animationDelay: `${index * 0.1}s` }}>
               #{index + 1} — {p.display_name} — {p.score} pts
-            </li>
+            </div>
           ))}
-        </ul>
+        </div>
       </div>
     );
   }
@@ -95,64 +96,72 @@ function JoinSession() {
   if (revealed && currentQuestion) {
     const wasCorrect = selectedOption === correctOptionIndex;
     return (
-      <div>
-        <h2>{wasCorrect ? 'Correct! 🎉' : 'Not quite!'}</h2>
-        <p>The correct answer was: {currentQuestion.options[correctOptionIndex]}</p>
-        <h3>Leaderboard</h3>
-        <ul>
-          {leaderboard.map((p) => (
-            <li key={p.id}>{p.display_name} — {p.score} pts</li>
-          ))}
-        </ul>
-        <p>Waiting for the host to continue...</p>
+      <div className="page">
+        <div className="question-panel fade-slide-in">
+          <h2 className={`result-heading ${wasCorrect ? 'neon-green' : 'neon-red'}`}>
+            {wasCorrect ? 'Correct! 🎉' : 'Not quite!'}
+          </h2>
+          <p>The correct answer was: {currentQuestion.options[correctOptionIndex]}</p>
+          <div className="section-label">Leaderboard</div>
+          <div className="player-list" style={{ margin: '0 auto' }}>
+            {leaderboard.map((p, index) => (
+              <div key={p.id} className="player-chip" style={{ animationDelay: `${index * 0.08}s` }}>
+                {p.display_name} — {p.score} pts
+              </div>
+            ))}
+          </div>
+          <p className="waiting-text">Waiting for the host to continue...</p>
+        </div>
       </div>
     );
   }
 
   if (joined && currentQuestion) {
     return (
-      <div>
-        <p>Question {currentQuestion.questionIndex + 1} of {currentQuestion.totalQuestions}</p>
-        <h2>{currentQuestion.questionText}</h2>
-        <ul>
+      <div className="page">
+        <div className="question-panel fade-slide-in">
+          <div className="question-meta">
+            Question {currentQuestion.questionIndex + 1} of {currentQuestion.totalQuestions}
+          </div>
+          <h2 className="question-text">{currentQuestion.questionText}</h2>
           {currentQuestion.options.map((option, index) => (
-            <li key={index}>
-              <button
-                onClick={() => handleSelectOption(index)}
-                disabled={hasAnswered}
-                style={{
-                  backgroundColor: selectedOption === index ? '#cce5ff' : 'white',
-                }}
-              >
-                {option}
-              </button>
-            </li>
+            <button
+              key={index}
+              className={`answer-btn ${selectedOption === index ? 'selected' : ''}`}
+              onClick={() => handleSelectOption(index)}
+              disabled={hasAnswered}
+            >
+              {option}
+            </button>
           ))}
-        </ul>
-        {hasAnswered && <p>Answer submitted! Waiting for others...</p>}
+          {hasAnswered && <p className="waiting-text">Answer submitted! Waiting for others...</p>}
+        </div>
       </div>
     );
   }
 
   if (joined) {
     return (
-      <div>
-        <h1>You're in!</h1>
+      <div className="page">
+        <h1 className="neon-magenta glitch-in">You're in!</h1>
         <p>Waiting for the host to start the quiz...</p>
-        <h3>Players in this room:</h3>
-        <ul>
-          {participants.map((p) => (
-            <li key={p.id}>{p.display_name}</li>
+        <div className="section-label">Players in this room</div>
+        <div className="player-list">
+          {participants.map((p, i) => (
+            <div key={p.id} className="player-chip" style={{ animationDelay: `${i * 0.08}s` }}>
+              {p.display_name}
+            </div>
           ))}
-        </ul>
+        </div>
       </div>
     );
   }
 
   return (
-    <div>
-      <h1>Join a Quiz</h1>
-      <form onSubmit={handleJoin}>
+    <div className="page">
+      <div className="section-label">Join a Quiz</div>
+      <h1 className="neon-magenta glitch-in">Enter Room</h1>
+      <form className="join-form" onSubmit={handleJoin}>
         <input
           type="text"
           placeholder="Room code"
@@ -165,9 +174,9 @@ function JoinSession() {
           value={displayName}
           onChange={(e) => setDisplayName(e.target.value)}
         />
-        <button type="submit">Join</button>
+        <button type="submit" className="btn-join">Join</button>
       </form>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {error && <p className="error-text">{error}</p>}
     </div>
   );
 }

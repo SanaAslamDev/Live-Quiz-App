@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import './QuizDetail.css';
 
 function QuizDetail() {
   const { id } = useParams();
@@ -78,37 +79,44 @@ const handleStartSession = async () => {
   }, [id]);
 
   if (!quiz) {
-    return <p>Loading...</p>;
-  }
+  return <p style={{ padding: '2rem', color: 'var(--muted)' }}>Loading...</p>;
+}
 
-  return (
-    <div>
-      <Link to="/">← Back to all quizzes</Link>
-      <h1>{quiz.title}</h1>
-      <button onClick={handleStartSession}>Start Session</button>
+return (
+  <div className="page">
+    <Link to="/" className="back-link">← Back to all quizzes</Link>
 
-      <h2>Questions</h2>
+    <div className="quiz-title-row">
+      <h1 className="neon-cyan">{quiz.title}</h1>
+      <button className="btn-start" onClick={handleStartSession}>
+        Start Session
+      </button>
+    </div>
+
+    <div className="section">
+      <div className="section-label">Questions</div>
       {questions.length === 0 ? (
-        <p>No questions yet.</p>
+        <p>No questions yet — add one below.</p>
       ) : (
-        <ul>
-          {questions.map((q) => (
-            <li key={q.id}>{q.question_text}</li>
-          ))}
-        </ul>
+        questions.map((q) => (
+          <div key={q.id} className="question-card fade-slide-in">
+            {q.question_text}
+          </div>
+        ))
       )}
+    </div>
 
-      <h2>Add a Question</h2>
-      <form onSubmit={handleAddQuestion}>
+    <div className="section">
+      <div className="section-label">Add a Question</div>
+      <form className="add-question-form" onSubmit={handleAddQuestion}>
         <input
           type="text"
           placeholder="Question text"
           value={questionText}
           onChange={(e) => setQuestionText(e.target.value)}
         />
-
         {options.map((option, index) => (
-          <div key={index}>
+          <div className="option-row" key={index}>
             <input
               type="text"
               placeholder={`Option ${index + 1}`}
@@ -119,7 +127,7 @@ const handleStartSession = async () => {
                 setOptions(newOptions);
               }}
             />
-            <label>
+            <label className="correct-label">
               <input
                 type="radio"
                 name="correctOption"
@@ -130,11 +138,11 @@ const handleStartSession = async () => {
             </label>
           </div>
         ))}
-
-        <button type="submit">Add Question</button>
+        <button type="submit" className="btn-add">Add Question</button>
       </form>
     </div>
-  );
+  </div>
+);
 }
 
 export default QuizDetail;

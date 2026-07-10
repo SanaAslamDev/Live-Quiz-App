@@ -1,111 +1,191 @@
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  /* Wall/concrete tones */
+  --wall-dark: #16130F;
+  --wall-mid: #1E1A15;
+  --mortar: #0D0B08;
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
+  /* Surfaces (cards mounted on the wall) */
+  --surface: #201C18;
+  --surface-hover: #2A241E;
+  --border: #3A332B;
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  /* Text */
+  --ink: #F2EFE9;
+  --muted: #9C9284;
 
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
+  /* Neon accents — punchier/more saturated than before, needs to actually glow */
+  --neon-cyan: #00F0FF;
+  --neon-magenta: #FF1F8F;
+  --neon-amber: #FFB800;
+  --neon-green: #39FF88;
+  --neon-red: #FF3B5C;
+
+  /* Type */
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Spacing scale */
+  --space-xs: 0.5rem;
+  --space-sm: 1rem;
+  --space-md: 1.5rem;
+  --space-lg: 2.5rem;
+  --space-xl: 4rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
+* {
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
+  color: var(--ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  background-color: var(--wall-dark);
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      var(--mortar) 0px,
+      var(--mortar) 2px,
+      transparent 2px,
+      transparent 32px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      var(--mortar) 0px,
+      var(--mortar) 2px,
+      transparent 2px,
+      transparent 64px
+    ),
+    radial-gradient(circle at 20% 20%, rgba(255, 31, 143, 0.05) 0%, transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(0, 240, 255, 0.05) 0%, transparent 40%),
+    linear-gradient(180deg, var(--wall-dark) 0%, var(--wall-mid) 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
 }
 
-#root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-}
-
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
-}
-
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
-p {
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
   margin: 0;
 }
 
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
+p {
+  color: var(--muted);
+  line-height: 1.6;
+  margin: 0;
 }
 
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+button {
+  font-family: var(--font-body);
+  cursor: pointer;
+  border: none;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--neon-cyan);
+  outline-offset: 2px;
+}
+
+input {
+  font-family: var(--font-body);
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border);
+  color: var(--ink);
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+}
+
+input::placeholder {
+  color: var(--muted);
+}
+
+input:focus {
+  border-color: var(--neon-cyan);
+}
+
+ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+a {
+  color: var(--neon-cyan);
+  text-decoration: none;
+}
+
+/* --- Neon text: real glowing-tube look via layered text-shadow --- */
+.neon-cyan {
+  color: #CFFEFF;
+  text-shadow:
+    0 0 4px rgba(0, 240, 255, 0.9),
+    0 0 12px rgba(0, 240, 255, 0.7),
+    0 0 28px rgba(0, 240, 255, 0.5),
+    0 0 60px rgba(0, 240, 255, 0.3);
+}
+
+.neon-magenta {
+  color: #FFD6EC;
+  text-shadow:
+    0 0 4px rgba(255, 31, 143, 0.9),
+    0 0 12px rgba(255, 31, 143, 0.7),
+    0 0 28px rgba(255, 31, 143, 0.5),
+    0 0 60px rgba(255, 31, 143, 0.3);
+}
+
+.neon-green {
+  color: #D6FFE8;
+  text-shadow: 0 0 4px rgba(57,255,136,0.9), 0 0 12px rgba(57,255,136,0.7), 0 0 28px rgba(57,255,136,0.5);
+}
+
+.neon-red {
+  color: #FFD9E0;
+  text-shadow: 0 0 4px rgba(255,59,92,0.9), 0 0 12px rgba(255,59,92,0.7), 0 0 28px rgba(255,59,92,0.5);
+}
+
+/* Subtle irregular flicker — real neon tubes aren't perfectly steady */
+@keyframes neonFlicker {
+  0%, 100% { opacity: 1; }
+  92% { opacity: 1; }
+  93% { opacity: 0.4; }
+  94% { opacity: 1; }
+  96% { opacity: 0.7; }
+  97% { opacity: 1; }
+}
+
+.neon-flicker {
+  animation: neonFlicker 5s infinite;
+}
+
+/* Glitch-in, kept from before for live moments (question drops, reveals) */
+@keyframes glitchIn {
+  0% { opacity: 0; transform: translateX(0); text-shadow: none; }
+  20% { opacity: 1; transform: translateX(-2px); }
+  40% { transform: translateX(2px); }
+  60% { transform: translateX(-1px); }
+  100% { transform: translateX(0); }
+}
+
+.glitch-in {
+  animation: glitchIn 0.4s ease-out;
+}
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glitch-in, .neon-flicker, .fade-slide-in {
+    animation: none;
+  }
 }

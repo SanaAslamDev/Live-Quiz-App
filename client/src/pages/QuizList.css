@@ -1,0 +1,176 @@
+.page {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-xl) var(--space-md);
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.25em;
+  color: var(--neon-amber);
+  text-transform: uppercase;
+  margin-bottom: var(--space-sm);
+  opacity: 0;
+  animation: fadeSlideIn 0.5s ease-out 0.1s forwards;
+}
+
+.page-title {
+  font-size: 3rem;
+  margin-bottom: var(--space-lg);
+  letter-spacing: 0.02em;
+}
+
+.create-form {
+  display: flex;
+  gap: var(--space-xs);
+  width: 100%;
+  max-width: 420px;
+  margin-bottom: var(--space-xl);
+  opacity: 0;
+  animation: fadeSlideIn 0.5s ease-out 0.3s forwards;
+}
+
+.create-form input {
+  flex: 1;
+  transition: box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.create-form input:focus {
+  box-shadow: 0 0 0 3px rgba(0, 240, 255, 0.15), 0 0 16px rgba(0, 240, 255, 0.2);
+}
+
+.btn-primary {
+  position: relative;
+  overflow: hidden;
+  background: transparent;
+  border: 1.5px solid var(--neon-cyan);
+  color: #CFFEFF;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-size: 1rem;
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.4), inset 0 0 10px rgba(0, 240, 255, 0.1);
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: rgba(0, 240, 255, 0.12);
+  box-shadow: 0 0 24px rgba(0, 240, 255, 0.7), inset 0 0 16px rgba(0, 240, 255, 0.2);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.quiz-section-label {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  width: 100%;
+  max-width: 420px;
+  margin-bottom: var(--space-sm);
+  opacity: 0;
+  animation: fadeSlideIn 0.5s ease-out 0.4s forwards;
+  position: relative;
+}
+
+.quiz-section-label::after {
+  content: '';
+  display: block;
+  height: 1px;
+  margin-top: 0.5rem;
+  background: linear-gradient(90deg, var(--border), transparent);
+}
+
+.quiz-list {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+/* "Mounted sign" card — dark plate with a hairline neon edge and corner bolts */
+.quiz-card {
+  position: relative;
+  background: linear-gradient(180deg, var(--surface) 0%, #191510 100%);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.1rem 1.4rem;
+  display: block;
+  opacity: 0;
+  transform: translateY(10px);
+  animation: fadeSlideIn 0.45s ease-out forwards;
+  transition: border-color 0.25s ease, box-shadow 0.3s ease, transform 0.25s ease;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+.quiz-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  padding: 1px;
+  background: linear-gradient(120deg, rgba(0,240,255,0.25), transparent 40%, rgba(255,31,143,0.2));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0.6;
+  transition: opacity 0.25s ease;
+}
+
+.quiz-card:hover {
+  border-color: transparent;
+  transform: translateX(4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 240, 255, 0.15);
+}
+
+.quiz-card:hover::before {
+  opacity: 1;
+}
+
+.quiz-card-title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  color: var(--ink);
+  font-size: 1.1rem;
+}
+
+.empty-state {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+}
+
+
+.quiz-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.btn-delete {
+  background: transparent;
+  color: var(--muted);
+  font-size: 1rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+.btn-delete:hover {
+  color: var(--neon-red);
+  background: rgba(255, 59, 92, 0.12);
+}
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
